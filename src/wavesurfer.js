@@ -39,6 +39,8 @@ var WaveSurfer = {
         skipLength    : 2,
         splitChannels : false,
         waveColor     : '#999',
+        waveStyle: 'default',
+        mbLimit: null
     },
 
     init: function (params) {
@@ -345,8 +347,8 @@ var WaveSurfer = {
         if (this.params.partialRender) {
             var newRanges = this.peakCache.addRangeToPeakCache(width, start, end);
             for (var i = 0; i < newRanges.length; i++) {
-              var peaks = this.backend.getPeaks(width, newRanges[i][0], newRanges[i][1]);
-              this.drawer.drawPeaks(peaks, width, newRanges[i][0], newRanges[i][1]);
+                var peaks = this.backend.getPeaks(width, newRanges[i][0], newRanges[i][1]);
+                this.drawer.drawPeaks(peaks, width, newRanges[i][0], newRanges[i][1]);
             }
         } else {
             start = 0;
@@ -499,7 +501,6 @@ var WaveSurfer = {
 
     decodeArrayBuffer: function (arraybuffer, callback) {
         this.arraybuffer = arraybuffer;
-
         this.backend.decodeArrayBuffer(
             arraybuffer,
             (function (data) {
@@ -524,6 +525,11 @@ var WaveSurfer = {
         this.currentAjax = ajax;
 
         this.tmpEvents.push(
+            ajax.on('progress', function (e) {
+                if(my.params.mbLimit !== null && (my.params.mbLimit * 1000000) <= e.total){
+                    ajax.xhr.abort();
+                }
+            }),
             ajax.on('progress', function (e) {
                 my.onProgress(e);
             }),
