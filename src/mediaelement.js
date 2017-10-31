@@ -5,6 +5,7 @@ WaveSurfer.MediaElement = Object.create(WaveSurfer.WebAudio);
 WaveSurfer.util.extend(WaveSurfer.MediaElement, {
     init: function (params) {
         this.params = params;
+        this.mediaElementListenerSet = false;
 
         // Dummy media to catch errors
         this.media = {
@@ -100,20 +101,22 @@ WaveSurfer.util.extend(WaveSurfer.MediaElement, {
         if (typeof media.load == 'function') {
             media.load();
         }
+		
+        if(!my.mediaElementListenerSet){
+            media.addEventListener('error', function () {
+                my.fireEvent('error', 'Error loading media element');
+            });
 
-        media.addEventListener('error', function () {
-            my.fireEvent('error', 'Error loading media element');
-        });
+            media.addEventListener('canplay', function () {
+                my.fireEvent('canplay');
+            });
 
-        media.addEventListener('canplay', function () {
-            my.fireEvent('canplay');
-        });
+            media.addEventListener('ended', function () {
+                my.fireEvent('finish');
+            });
+        }    
 
-        media.addEventListener('ended', function () {
-            my.fireEvent('finish');
-        });
-
-        this.media = media;
+	    this.media = media;
         this.peaks = peaks;
         this.onPlayEnd = null;
         this.buffer = null;
